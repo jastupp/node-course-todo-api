@@ -20,6 +20,14 @@ app.post('/todos', (request, response) => {
     });
 });
 
+app.get('/todos', (request, response) => {
+    Todo.find().then((todos) => {
+        response.send({todos: todos});
+    }, (error) => {
+        response.send(400).send(error);
+    })
+});
+
 app.listen(3000, () => {
     console.log('Started listening on 3000.. ');
 });
