@@ -1,5 +1,6 @@
 const assert = require('expect');
 const test = require('supertest');
+const ObjectID = require('mongodb').ObjectID;
 
 const app  = require('../server').app;
 const Todo  = require('../models/todo').Todo;
@@ -63,6 +64,6 @@ describe('GET /todos', (done) => {
                 assert(response.body.length).toBe(2);
             })
             .end(done);
-    }); 
+    });
 });
 

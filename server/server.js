@@ -1,5 +1,6 @@
 const express = require('express');
 const parser = require('body-parser');
+const ObjectID = require('mongodb').ObjectID;
 
 const mongoose = require('./db/mongoose').mongoose;
 const Todo = require('./models/todo').Todo;
@@ -7,6 +8,7 @@ const User = require('./models/user').User;
 
 var app = express();
 app.use(parser.json());
+
 
 app.post('/todos', (request, response) => {
     var todo = new Todo({
@@ -20,6 +22,7 @@ app.post('/todos', (request, response) => {
     });
 });
 
+
 app.get('/todos', (request, response) => {
     Todo.find().then((todos) => {
         response.send({todos: todos});
@@ -27,6 +30,24 @@ app.get('/todos', (request, response) => {
         response.send(400).send(error);
     })
 });
+
+
+app.get('/todos/:id', (request, response) => {
+    const id = request.params.id;
+
+    if(!ObjectID.isValid(id)) {
+        response.status(404).send('Check id is valid');
+    } else {
+        Todo.findById(id).then((result) => {
+            result && response.send({todo: result});
+            result || response.sendStatus(404);
+        }, (error) => {
+            response.sendStatus(400);
+        });
+    }
+});
+
+
 
 app.listen(3000, () => {
     console.log('Started listening on 3000.. ');
