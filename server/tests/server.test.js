@@ -97,3 +97,35 @@ describe('GET /todos:id', () => {
     });
 });
 
+describe('DELETE /todos:id', () => {
+    it('Should remove a todo', (done) => {
+        test(app)
+            .delete('/todos/' + id1)
+            .expect(200)
+            .expect((response) => {
+                //console.log('QQQQ', response.body.todo._id);
+                assert(response.body.todo._id).toBe(id1);
+            })
+            .end((error, response) => {
+                Todo.findById(id1).then((result) => {
+                    assert(result).toBeNull();
+                    done();
+                }).catch((error) => done(error))
+            });
+    });
+
+    it('Should return a 404 as the id doest not exist', (done) => {
+        test(app)
+            .delete('/todos/4c4ead502d8729705d9a4ccb')
+            .expect(404)
+            .end(done);
+    });
+
+    it('Sould return 404 with invalid id', (done) => {
+        test(app)
+            .delete('/todos/' + id1 + 'q')
+            .expect(404)
+            .end(done);
+    });
+});
+
