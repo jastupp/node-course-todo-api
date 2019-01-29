@@ -8,6 +8,7 @@ const User = require('./models/user').User;
 
 var app = express();
 app.use(parser.json());
+const port = process.env.PORT || 3000;
 
 
 app.post('/todos', (request, response) => {
@@ -41,6 +42,22 @@ app.get('/todos/:id', (request, response) => {
         Todo.findById(id).then((result) => {
             result && response.send({todo: result});
             result || response.sendStatus(404);
+        }, (error) => { 
+            response.sendStatus(400);
+        });
+    }
+});
+
+
+app.delete('/todos/:id', (request, response) => {
+    const id = request.params.id;
+
+    if(!ObjectID.isValid(id)) {
+        response.status(404).send();
+    } else {
+        Todo.findByIdAndDelete(id).then((result) => {
+            result && response.send({todo: result});
+            result || response.sendStatus(404);
         }, (error) => {
             response.sendStatus(400);
         });
@@ -49,8 +66,8 @@ app.get('/todos/:id', (request, response) => {
 
 
 
-app.listen(3000, () => {
-    console.log('Started listening on 3000.. ');
+app.listen(port, () => {
+    console.log(`Started listening on ${port}.. `);
 });
 
 module.exports = {
