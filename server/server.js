@@ -3,13 +3,14 @@ const express = require('express');
 const parser = require('body-parser');
 const ObjectID = require('mongodb').ObjectID;
 
+require('./config/config');
 const mongoose = require('./db/mongoose').mongoose;
 const Todo = require('./models/todo').Todo;
 const User = require('./models/user').User;
 
 var app = express();
 app.use(parser.json());
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 
 app.post('/todos', (request, response) => {
