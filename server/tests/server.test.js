@@ -98,6 +98,7 @@ describe('GET /todos:id', () => {
 });
 
 describe('DELETE /todos:id', () => {
+
     it('Should remove a todo', (done) => {
         test(app)
             .delete('/todos/' + id1)
@@ -127,5 +128,54 @@ describe('DELETE /todos:id', () => {
             .expect(404)
             .end(done);
     });
+});
+
+describe('PATCH /todos:id', () => {
+
+    it('Should update a todo', (done) => {
+        const text = 'Updated Text';
+        test(app)
+            .patch('/todos/' + id1)
+            .send({text: text, completed: true})
+            .expect(200)
+            .expect((response) => {
+                assert(response.body.todo._id).toBe(id1);
+                assert(response.body.todo.text).toBe(text);
+                assert(response.body.todo.completed).toBe(true);
+                assert(response.body.todo.completedAt).toBeTruthy();
+            })
+            .end(done);
+    });
+
+
+    it('Should update a todo and set completed false', (done) => {
+        const text = 'Updated Text';
+        test(app)
+            .patch('/todos/' + id1)
+            .send({text: text + 'QQQ', completed: false})
+            .expect(200)
+            .expect((response) => {
+                assert(response.body.todo._id).toBe(id1);
+                assert(response.body.todo.text).toBe(text + 'QQQ');
+                assert(response.body.todo.completed).toBe(false);
+                assert(response.body.todo.completedAt).toBeNull();
+            })
+            .end(done);
+    });
+
+
+    // it('Should return a 404 as the id doest not exist', (done) => {
+    //     test(app)
+    //         .delete('/todos/4c4ead502d8729705d9a4ccb')
+    //         .expect(404)
+    //         .end(done);
+    // });
+    //
+    // it('Sould return 404 with invalid id', (done) => {
+    //     test(app)
+    //         .delete('/todos/' + id1 + 'q')
+    //         .expect(404)
+    //         .end(done);
+    // });
 });
 
