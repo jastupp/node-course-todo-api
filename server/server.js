@@ -80,14 +80,26 @@ app.patch('/todos/:id', (request, response) => {
             body.completed = false;
         }
 
-        Todo.findByIdAndUpdate(id, {$set: body}, {new: true})
+        Todo.findOneAndUpdate(id, {$set: body}, {new: true})
             .then((result) => {
                 result || response.sendStatus(404);
                 result && response.send({todo: result});
             }).catch((error) => response.sendStatus(400));
     }
+});
 
 
+app.post('/users', (request, response) => {
+   const user_items = _.pick(request.body, ['email', 'password']);
+   const user = new User(user_items);
+
+   user.save().then(() => {
+       return user.generateAuthToken();
+   }).then((token) => {
+       response.header('x-auth', token).send(user);
+   }).catch((error) => {
+       response.status(400).send(error);
+   });
 });
 
 

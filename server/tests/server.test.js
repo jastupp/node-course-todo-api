@@ -162,20 +162,5 @@ describe('PATCH /todos:id', () => {
             })
             .end(done);
     });
-
-
-    // it('Should return a 404 as the id doest not exist', (done) => {
-    //     test(app)
-    //         .delete('/todos/4c4ead502d8729705d9a4ccb')
-    //         .expect(404)
-    //         .end(done);
-    // });
-    //
-    // it('Sould return 404 with invalid id', (done) => {
-    //     test(app)
-    //         .delete('/todos/' + id1 + 'q')
-    //         .expect(404)
-    //         .end(done);
-    // });
 });
 
