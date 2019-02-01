@@ -7,6 +7,7 @@ require('./config/config');
 const mongoose = require('./db/mongoose').mongoose;
 const Todo = require('./models/todo').Todo;
 const User = require('./models/user').User;
+const {authenticate} = require('./middleware/authenticate');
 
 var app = express();
 app.use(parser.json());
@@ -100,6 +101,13 @@ app.post('/users', (request, response) => {
    }).catch((error) => {
        response.status(400).send(error);
    });
+});
+
+
+
+
+app.get('/users/me', authenticate, (request, response) => {
+    response.send(request.user);
 });
 
 
