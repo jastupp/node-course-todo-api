@@ -2,6 +2,8 @@ const _ = require('lodash');
 const express = require('express');
 const parser = require('body-parser');
 const ObjectID = require('mongodb').ObjectID;
+const bcrypt = require('bcryptjs');
+
 
 require('./config/config');
 const mongoose = require('./db/mongoose').mongoose;
@@ -67,6 +69,7 @@ app.delete('/todos/:id', (request, response) => {
     }
 });
 
+
 app.patch('/todos/:id', (request, response) => {
     const id = request.params.id;
 
@@ -104,17 +107,29 @@ app.post('/users', (request, response) => {
 });
 
 
-
-
 app.get('/users/me', authenticate, (request, response) => {
     response.send(request.user);
 });
 
 
+app.post('/users/login', (request, response) => {
+
+   const user_items = _.pick(request.body, ['email', 'password']);
+
+   User.findByCredentials(user_items.email, user_items.password).then((user) => {
+       user.generateAuthToken().then((token) => {
+            response.header('x-auth', token).send(user);
+       });
+   }).catch((erorr) => {
+       response.sendStatus(400);
+   });
+});
+
 
 app.listen(port, () => {
     console.log(`Started listening on ${port}.. `);
 });
+
 
 module.exports = {
     app: app
