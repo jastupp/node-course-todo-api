@@ -41,15 +41,14 @@ schema.methods.generateAuthToken = function() {
 schema.statics.findByToken = function(token) {
     var user = this;
     var decoded;
-    var result;
 
     try {
         decoded = jwt.verify(token, '12345');
     } catch(error) {
-        result = Promise.reject();
+        return Promise.reject();
     }
 
-    return result || user.findOne({
+    return user.findOne({
        '_id': decoded._id,
        'tokens.token': token,
        'tokens.access': 'auth'
