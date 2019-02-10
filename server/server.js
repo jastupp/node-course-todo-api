@@ -16,9 +16,10 @@ app.use(parser.json());
 const port = process.env.PORT;
 
 
-app.post('/todos', (request, response) => {
+app.post('/todos', authenticate, (request, response) => {
     var todo = new Todo({
-        text: request.body.text
+        text: request.body.text,
+        _user: request.user._id
     });
 
     todo.save().then((result) => {
@@ -29,8 +30,8 @@ app.post('/todos', (request, response) => {
 });
 
 
-app.get('/todos', (request, response) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (request, response) => {
+    Todo.find({_user: request.user._id}).then((todos) => {
         response.send({todos: todos});
     }, (error) => {
         response.send(400).send(error);
@@ -38,13 +39,13 @@ app.get('/todos', (request, response) => {
 });
 
 
-app.get('/todos/:id', (request, response) => {
+app.get('/todos/:id', authenticate, (request, response) => {
     const id = request.params.id;
 
     if(!ObjectID.isValid(id)) {
         response.status(404).send('Check id is valid');
     } else {
-        Todo.findById(id).then((result) => {
+        Todo.findOne({_id: id, _user: request.user._id}).then((result) => {
             result && response.send({todo: result});
             result || response.sendStatus(404);
         }, (error) => {
@@ -54,13 +55,15 @@ app.get('/todos/:id', (request, response) => {
 });
 
 
-app.delete('/todos/:id', (request, response) => {
+app.delete('/todos/:id', authenticate, (request, response) => {
     const id = request.params.id;
 
     if(!ObjectID.isValid(id)) {
         response.status(404).send();
     } else {
-        Todo.findByIdAndDelete(id).then((result) => {
+        Todo.findOneAndDelete({_id: id, _user: request.user._id}).then((result) => {
+            if(!result) { return response.sendStatus(404); }
+
             result && response.send({todo: result});
             result || response.sendStatus(404);
         }, (error) => {
@@ -70,7 +73,7 @@ app.delete('/todos/:id', (request, response) => {
 });
 
 
-app.patch('/todos/:id', (request, response) => {
+app.patch('/todos/:id', authenticate, (request, response) => {
     const id = request.params.id;
 
     var body = _.pick(request.body, ['text', 'completed']);
@@ -84,7 +87,7 @@ app.patch('/todos/:id', (request, response) => {
             body.completed = false;
         }
 
-        Todo.findOneAndUpdate(id, {$set: body}, {new: true})
+        Todo.findOneAndUpdate({_id: id, _user: request.user._id}, {$set: body}, {new: true})
             .then((result) => {
                 result || response.sendStatus(404);
                 result && response.send({todo: result});

@@ -16,6 +16,7 @@ var authenticate = (request, repsponse, next) => {
     }, (error) => {
         //response.sendStatus(401);
         console.log('REJECTED !!');
+        console.log(error);
     }).catch((error) => {
         response.sendStatus(401);
     });

@@ -8,8 +8,8 @@ const todo_id2 = '4c4ead502d8729705d9a4ccd';
 const user_id1 = '4c4ead502d8729705d9a4cce';
 const user_id2 = '4c4ead502d8729705d9a4ccf';
 
-const test_todos = [{_id: todo_id1, text: 'First test todo'},
-                    {_id: todo_id2, text: 'Second test todo'}];
+const test_todos = [{_id: todo_id1, text: 'First test todo', _user: user_id1},
+                    {_id: todo_id2, text: 'Second test todo', _user: user_id2}];
 
 const test_users = [
     {_id: user_id1,
@@ -18,7 +18,8 @@ const test_users = [
      tokens: [{access: 'auth', token: jwt.sign({_id: user_id1, access: 'auth'}, '12345').toString()}]},
     {_id: user_id2,
      email: 'me@there.com',
-     password: 'UserTwoPass'}];
+     password: 'UserTwoPass',
+     tokens: [{access: 'auth', token: jwt.sign({_id: user_id2, access: 'auth'}, '12345').toString()}]}];
 
 const populateTodos = (done) => {
     Todo.deleteMany({}).then(() => {

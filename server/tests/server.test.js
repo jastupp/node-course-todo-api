@@ -15,17 +15,21 @@ beforeEach(populateTodos);
 
 
 describe('POST /todos', () => {
+
+    const user = test_users[0];
+
     it('Should create a new todo', (done) => {
         var text = 'Test todo text';
 
-        test(app).
-            post('/todos').
-            send({text: text}).
-            expect(200).
-            expect((response) => {
+        test(app)
+            .post('/todos')
+            .set('x-auth', user.tokens[0].token)
+            .send({text: text})
+            .expect(200)
+            .expect((response) => {
                 assert(response.body.text).toEqual(text);
-            }).
-            end((error, resopnse) => {
+            })
+            .end((error, resopnse) => {
                 if(error) {
                     done(error);
                 } else {
@@ -39,10 +43,11 @@ describe('POST /todos', () => {
 
     it('should not create todo woth invalid data', (done) => {
         test(app).
-            post('/todos').
-            send({text: ' '}).
-            expect(400).
-            end((error, resopnse) => {
+            post('/todos')
+            .set('x-auth', user.tokens[0].token)
+            .send({text: ' '})
+            .expect(400)
+            .end((error, resopnse) => {
                 if(error) {
                     done(error);
                 } else {
@@ -56,12 +61,16 @@ describe('POST /todos', () => {
 });
 
 describe('GET /todos', () => {
+
+    const user = test_users[0];
+
     it('Should return the test todos', (done) => {
         test(app)
             .get('/todos')
+            .set('x-auth', user.tokens[0].token)
             .expect(200)
             .expect((response) => {
-                assert(response.body.todos.length).toBe(2);
+                assert(response.body.todos.length).toBe(1);
             })
             .end(done);
     });
@@ -70,10 +79,12 @@ describe('GET /todos', () => {
 describe('GET /todos:id', () => {
 
     const todo = test_todos[0];
+    const user = test_users[0];
 
     it('Should return a todo', (done) => {
         test(app)
             .get('/todos/' + todo._id)
+            .set('x-auth', user.tokens[0].token)
             .expect(200)
             .expect((response) => {
                 assert(response.body.todo._id).toBe(todo._id);
@@ -81,9 +92,21 @@ describe('GET /todos:id', () => {
             .end(done);
     });
 
+    it('Should not return a todo', (done) => {
+        test(app)
+            .get('/todos/' + test_todos[1]._id)
+            .set('x-auth', user.tokens[0].token)
+            .expect(404)
+            .expect((response) => {
+                assert(response.body.todo).toBeUndefined();
+            })
+            .end(done);
+    });
+
     it('Should return a 404 as the id doest not exist', (done) => {
         test(app)
             .get('/todos/4c4ead502d8729705d9a4ccb')
+            .set('x-auth', user.tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -91,6 +114,7 @@ describe('GET /todos:id', () => {
     it('Sould return 404 with invalid id', (done) => {
         test(app)
             .get('/todos/' + todo._id + 'q')
+            .set('x-auth', user.tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -99,10 +123,12 @@ describe('GET /todos:id', () => {
 describe('DELETE /todos:id', () => {
 
     const todo = test_todos[0];
+    const user = test_users[0];
 
     it('Should remove a todo', (done) => {
         test(app)
             .delete('/todos/' + todo._id)
+            .set('x-auth', user.tokens[0].token)
             .expect(200)
             .expect((response) => {
                 assert(response.body.todo._id).toBe(todo._id);
@@ -115,9 +141,26 @@ describe('DELETE /todos:id', () => {
             });
     });
 
+    it('Should not remove a todo', (done) => {
+        test(app)
+            .delete('/todos/' + todo._id)
+            .set('x-auth', test_users[1].tokens[0].token)
+            .expect(404)
+            .expect((response) => {
+                assert(response.body.todo._id).toBe(todo._id);
+            })
+            .end((error, response) => {
+                Todo.findById(todo._id).then((result) => {
+                    assert(result._id.toString()).toBe(todo._id);
+                    done();
+                }).catch((error) => done(error))
+            });
+    });
+
     it('Should return a 404 as the id doest not exist', (done) => {
         test(app)
             .delete('/todos/4c4ead502d8729705d9a4ccb')
+            .set('x-auth', user.tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -125,6 +168,7 @@ describe('DELETE /todos:id', () => {
     it('Sould return 404 with invalid id', (done) => {
         test(app)
             .delete('/todos/' + todo._id + 'q')
+            .set('x-auth', user.tokens[0].token)
             .expect(404)
             .end(done);
     });
@@ -133,11 +177,13 @@ describe('DELETE /todos:id', () => {
 describe('PATCH /todos:id', () => {
 
     const todo = test_todos[0];
+    const user = test_users[0];
 
     it('Should update a todo', (done) => {
         const text = 'Updated Text';
         test(app)
             .patch('/todos/' + todo._id)
+            .set('x-auth', user.tokens[0].token)
             .send({text: text, completed: true})
             .expect(200)
             .expect((response) => {
@@ -150,10 +196,29 @@ describe('PATCH /todos:id', () => {
     });
 
 
+    it('Should not update a todo', (done) => {
+        const text = 'Updated Text';
+        test(app)
+            .patch('/todos/' + todo._id)
+            .set('x-auth', test_users[1].tokens[0].token)
+            .send({text: text, completed: true})
+            .expect(404)
+            // .expect((response) => {
+            //     assert(response.body.todo._id).toBe(todo._id);
+            //     assert(response.body.todo.text).toBe(text);
+            //     assert(response.body.todo.completed).toBe(true);
+            //     assert(response.body.todo.completedAt).toBeTruthy();
+            // })
+            .end(done);
+    });
+
+
+
     it('Should update a todo and set completed false', (done) => {
         const text = 'Updated Text';
         test(app)
             .patch('/todos/' + todo._id)
+            .set('x-auth', user.tokens[0].token)
             .send({text: text + 'QQQ', completed: false})
             .expect(200)
             .expect((response) => {
