@@ -5,7 +5,8 @@ const test = require('supertest');
 //const ObjectID = require('mongodb').ObjectID;
 
 const app  = require('../server').app;
-const Todo  = require('../models/todo').Todo;
+const { Todo } = require('../models/todo');
+const { User }  = require('../models/user');
 const {test_todos, populateTodos, test_users, populateUsers} = require('./seed/seed');
 
 
@@ -230,7 +231,54 @@ describe('POST /users', () => {
             .expect(400)
             .end(done);
     });
+});
+
+describe('POST /users/login', () => {
+
+    const user1 = test_users[0];
+
+    it('Should log in with 200 and auth token', (done) => {
+        test(app)
+            .post('/users/login')
+            .send({email: user1.email, password: user1.password})
+            .expect(200)
+            .expect((response) => {
+                assert(response.body.email).toBe(user1.email);
+                assert(response.headers['x-auth']).toBeDefined();
+            })
+            .end(done);
+    });
+
+    it('Should log with wrong password and get 400 and no body', (done) => {
+        test(app)
+            .post('/users/login')
+            .send({email: user1.email, password: user1.password + 'q'})
+            .expect(400)
+            .expect((response) => {
+                assert(response.body.email).toBeUndefined();
+                assert(response.body.tokens).toBeUndefined();
+            })
+            .end(done);
+    });
 
 });
 
+describe('DELETE /users/me/token', () => {
+
+    const user = test_users[0];
+
+    it('Sould delete token if present', (done) => {
+        test(app)
+            .delete('/users/me/token')
+            .set('x-auth', user.tokens[0].token)
+            .send()
+            .expect(200)
+            .end((error, response) => {
+                User.findById(user._id).then((user) => {
+                    assert(user.tokens.length).toBe(0);
+                    done();
+                }).catch((error) => done(error));
+            });
+    });
+});
 
